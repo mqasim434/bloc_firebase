@@ -22,6 +22,5 @@ class SignupState extends Equatable {
 }
 
   @override
-  // TODO: implement props
   List<Object?> get props => [signupStatus,user,message];
 }

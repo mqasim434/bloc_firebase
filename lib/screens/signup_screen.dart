@@ -1,5 +1,5 @@
-import 'package:bloc_firebase/blocs/signup_bloc.dart';
-import 'package:bloc_firebase/blocs/signup_event.dart';
+import 'package:bloc_firebase/blocs/signup_bloc/signup_bloc.dart';
+import 'package:bloc_firebase/blocs/signup_bloc/signup_event.dart';
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,12 +38,13 @@ class SignupScreen extends StatelessWidget {
                     child: TextFormField(
                       controller: nameController,
                       decoration: InputDecoration(
-                          labelText: 'Full Name',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              50,
-                            ),
-                          )),
+                        labelText: 'Full Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            50,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Padding(
@@ -51,12 +52,13 @@ class SignupScreen extends StatelessWidget {
                     child: TextFormField(
                       controller: emailController,
                       decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              50,
-                            ),
-                          )),
+                        labelText: 'Email',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            50,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Padding(
@@ -117,7 +119,6 @@ class SignupScreen extends StatelessWidget {
                                 user: user,
                               ),
                             );
-
                       },
                       style: ButtonStyle(
                         shape: MaterialStateProperty.all(

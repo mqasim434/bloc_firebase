@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:bloc_firebase/blocs/signup_event.dart';
-import 'package:bloc_firebase/blocs/signup_state.dart';
+import 'package:bloc_firebase/blocs/signup_bloc/signup_event.dart';
+import 'package:bloc_firebase/blocs/signup_bloc/signup_state.dart';
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/repository/signup_repository.dart';
 import 'package:bloc_firebase/utils/enums.dart';
