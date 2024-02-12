@@ -1,44 +1,44 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_firebase/blocs/location_bloc/location_event.dart';
 import 'package:bloc_firebase/blocs/location_bloc/location_state.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class LocationBloc extends Bloc<LocationEvent,LocationState> {
+class LocationBloc extends Bloc<LocationEvent, LocationState> {
   LocationBloc()
       : super(
           LocationState(
             cameraPosition: const CameraPosition(
               target: LatLng(37.42796133580664, -122.085749655962),
-            ),
-          ),
-        ) {
-    on<CurrentLocationEvent>(
-      (event, emit) async{
-        Position position = await _determinePosition();
-        emit(
-          LocationState(
-            cameraPosition: CameraPosition(
-              target: LatLng(position.latitude, position.longitude),
               zoom: 14,
             ),
           ),
-        );
-      },
-    );
-    on<ResetLocationEvent>(
-      (event, emit) => emit(
-        LocationState(
-          cameraPosition: const CameraPosition(
-            target: LatLng(37.42796133580664, -122.085749655962),
-            zoom: 14,
+        ) {
+    on<GetCurrentLocationEvent>((event, Emitter<LocationState> emit) async {
+      try {
+        Position position = await determinePosition();
+        print('Position.... $position');
+        emit(
+          LocationState(
+            cameraPosition: CameraPosition(
+              target: LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
+      } catch (e) {
+        print(e.toString());
+      }
+    });
   }
 
-  Future<Position> _determinePosition() async {
+
+
+  Future<Position> determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 

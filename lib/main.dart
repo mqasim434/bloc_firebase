@@ -1,7 +1,15 @@
+import 'package:bloc_firebase/blocs/location_bloc/location_bloc.dart';
 import 'package:bloc_firebase/providers/location_provider.dart';
+import 'package:bloc_firebase/providers/otp_provider.dart';
+import 'package:bloc_firebase/providers/registration_provider.dart';
+import 'package:bloc_firebase/repository/signup_repository.dart';
+import 'package:bloc_firebase/screens/live_location.dart';
 import 'package:bloc_firebase/screens/live_location_screen.dart';
+import 'package:bloc_firebase/screens/registration_screen.dart';
+import 'package:bloc_firebase/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -16,13 +24,20 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => LocationProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => RegistrationProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => OTPProvider(),
+        ),
+      ],
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
-        home: const LiveLocationScreen(),
+        home: const SplashScreen(),
       ),
     );
   }
