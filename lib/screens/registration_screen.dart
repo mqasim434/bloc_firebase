@@ -1,133 +1,182 @@
+import 'package:bloc_firebase/components/social_login_button.dart';
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
 import 'package:bloc_firebase/screens/profile_screen.dart';
+import 'package:bloc_firebase/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class RegistrationScreen extends StatelessWidget {
+class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
+
+  @override
+  State<RegistrationScreen> createState() => _RegistrationScreenState();
+}
+
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  NotificationServices notificationServices = NotificationServices();
+
+  @override
+  void initState() {
+    notificationServices.requestNotificationPermissions();
+    notificationServices.refreshToken();
+    notificationServices.firebaseInit(context);
+    notificationServices.getDeviceToken().then((value) {
+      print(value.toString());
+    });
+    super.initState();
+  }
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     final registrationProvider = Provider.of<RegistrationProvider>(context);
-    TextEditingController phoneController = TextEditingController();
     return SafeArea(
         child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Registration'),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Card(
-            child: ListTile(
-              onTap: () {
-                registrationProvider.signupWithGoogle().then((value) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(
-                        userModel: UserModel(
-                          name: value!.displayName,
-                          email: value!.email,
-                          phone: value!.phoneNumber,
-                          imageUrl: value!.photoURL,
-                        ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Sign Up\nYour Account',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  TextFormField(
+                    controller: registrationProvider.emailController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter email',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                  );
-                });
-              },
-              leading: const Icon(Icons.login),
-              title: const Text(
-                'Continue with Google',
-              ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              onTap: () {},
-              leading: const Icon(Icons.login),
-              title: const Text(
-                'Continue with Facebook',
-              ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              onTap: () {
-                registrationProvider.signInWithTwitter();
-              },
-              leading: const Icon(Icons.login),
-              title: const Text(
-                'Continue with Twitter',
-              ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              onTap: () {
-                registrationProvider.signinWithGithub().then((value) {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => ProfileScreen(
-                      userModel: UserModel(
-                        name: value!.user!.displayName,
-                        email: value!.user!.email,
-                        phone: value!.user!.phoneNumber,
-                        imageUrl: value!.user!.photoURL,
+                    validator: (value){
+                      if(value!.isEmpty){
+                        return 'Enter email address';
+                      }
+                    },
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  TextFormField(
+                    controller: registrationProvider.passwordController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter password',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                  ),);
-                });
-              },
-              leading: const Icon(Icons.login),
-              title: const Text(
-                'Continue with Github',
-              ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              onTap: () {},
-              leading: const Icon(Icons.login),
-              title: const Text(
-                'Continue with Apple',
-              ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              onTap: () {
-                showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return SizedBox(
-                        height: 200,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: phoneController,
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                registrationProvider.signinWithPhone(context);
-                              },
-                              child: const Text(
-                                'Send Code',
+                    validator: (value){
+                      if(value!.isEmpty){
+                        return 'Enter password';
+                      }
+                    },
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  TextFormField(
+                    controller: registrationProvider.confirmPasswordController,
+                    decoration: InputDecoration(
+                      hintText: 'Confirm password',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    validator: (value){
+                      if(value!.isEmpty){
+                        return 'Enter Confirm password';
+                      }else if(value!=registrationProvider.passwordController.text){
+                        return 'Password does not match';
+                      }
+                    },
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if(_formKey.currentState!.validate()){
+                        registrationProvider.signUpWithEmail().then((value){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfileScreen(
+                                userModel: UserModel(
+                                  name: value!.user!.displayName,
+                                  email: value!.user!.email,
+                                  imageUrl: value!.user!.photoURL,
+                                ),
                               ),
                             ),
-                          ],
+                          );
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(
+                        MediaQuery.of(context).size.width,
+                        50,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          20,
                         ),
-                      );
-                    });
-              },
-              leading: const Icon(Icons.login),
-              title: const Text(
-                'Signup with Phone',
+                      ),
+                    ),
+                    child: const Text('Sign up'),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        color: Colors.white,
+                        width: 100,
+                        height: 1,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Text('OR'),
+                      ),
+                      Container(
+                        color: Colors.white,
+                        width: 100,
+                        height: 1,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SocialLoginButton(
+                        icon: 'assets/icons/google.png',
+                        onPress: ()=>registrationProvider.signupWithGoogle(),
+                      ),
+                      SocialLoginButton(
+                        icon: 'assets/icons/github.png',
+                        onPress: ()=>registrationProvider.signinWithGithub(),
+                      ),
+                    ],
+                  )
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     ));
   }

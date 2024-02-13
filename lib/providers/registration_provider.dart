@@ -11,6 +11,26 @@ class RegistrationProvider extends ChangeNotifier {
   bool isLoading = false;
   User? currentUser;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
+  Future<UserCredential> signUpWithEmail() async {
+    var credential = await firebaseAuth.createUserWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+    return credential;
+  }
+
+  Future<UserCredential> signInWithEmail() async {
+    var credential = await firebaseAuth.signInWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+    return credential;
+  }
 
   Future<User?> signupWithGoogle() async {
     isLoading = true;
@@ -22,40 +42,40 @@ class RegistrationProvider extends ChangeNotifier {
       idToken: gAuth.idToken,
       accessToken: gAuth.accessToken,
     );
-
     isLoading = false;
-    notifyListeners();
-
     var userCredentials = await firebaseAuth.signInWithCredential(credentials);
     currentUser = userCredentials.user;
+    notifyListeners();
     return currentUser;
   }
 
   Future<UserCredential> signInWithTwitter() async {
-    // Create a TwitterLogin instance
     final twitterLogin = TwitterLogin(
-        apiKey: '9F3Ud0ltt234149H7NhK11lqJ',
-        apiSecretKey: ' yiazlhZrzxbsmNTAVclFAruX9HntKjjwbegQTNHzasoo581KVN',
+        apiKey: 'rn2oUofv8lHvN4Ko2rGNDemzP',
+        apiSecretKey: 'cL41W8daWPuFH17bYKjAu0lUn1TLdd1PrHGIYKDcATWYbBrQzm',
         redirectURI:
             'https://bloc-firebase-9c498.firebaseapp.com/__/auth/handler');
 
-    // Trigger the sign-in flow
     final authResult = await twitterLogin.login();
 
-    // Create a credential from the access token
     final twitterAuthCredential = TwitterAuthProvider.credential(
       accessToken: authResult.authToken!,
       secret: authResult.authTokenSecret!,
     );
 
-    // Once signed in, return the UserCredential
     return await firebaseAuth.signInWithCredential(twitterAuthCredential);
   }
 
-  Future<UserCredential> signinWithGithub() async {
+  Future<User?> signinWithGithub() async {
     GithubAuthProvider githubAuthProvider = GithubAuthProvider();
 
-    return firebaseAuth.signInWithProvider(githubAuthProvider);
+    var userCredentials = firebaseAuth.signInWithProvider(githubAuthProvider);
+
+    userCredentials.then((value) {
+      currentUser = value.user;
+    });
+
+    return currentUser;
   }
 
   signinWithPhone(BuildContext context) async {

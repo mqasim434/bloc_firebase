@@ -15,17 +15,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    if(SplashProvider().isLoggedIn){
-      Future.delayed(const Duration(seconds: 3), () {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => ProfileScreen()));
-      });
-    }else{
-      Future.delayed(const Duration(seconds: 3), () {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const RegistrationScreen()));
-      });
-    }
+    SplashProvider().checkSession(context);
     super.initState();
   }
 
