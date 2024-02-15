@@ -1,5 +1,6 @@
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
+import 'package:bloc_firebase/screens/chat_screen.dart';
 import 'package:bloc_firebase/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ class SocialLoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final registrationProvider = Provider.of<RegistrationProvider>(context);
     return InkWell(
       onTap: () {
         Future<User?> Function() value = onPress;
@@ -21,7 +23,7 @@ class SocialLoginButton extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProfileScreen(
+                  builder: (context) => ChatScreen(
                     userModel: UserModel(
                       name: value!.displayName,
                       email: value!.email,

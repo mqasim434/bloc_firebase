@@ -1,23 +1,43 @@
 import 'package:bloc_firebase/components/social_login_button.dart';
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
+import 'package:bloc_firebase/screens/chat_screen.dart';
 import 'package:bloc_firebase/screens/profile_screen.dart';
+import 'package:bloc_firebase/screens/registration_screen.dart';
+import 'package:bloc_firebase/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SignInScreen extends StatelessWidget {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+class SignInScreen extends StatefulWidget {
 
   SignInScreen({super.key});
+
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  NotificationServices notificationServices = NotificationServices();
+  @override
+  void initState() {
+    notificationServices.requestNotificationPermissions();
+    notificationServices.refreshToken();
+    notificationServices.firebaseInit(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final registrationProvider = Provider.of<RegistrationProvider>(context);
     return SafeArea(
         child: Scaffold(
-          body: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Stack(
+          children: [
+            Form(
               key: _formKey,
               child: Center(
                 child: SingleChildScrollView(
@@ -39,8 +59,8 @@ class SignInScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        validator: (value){
-                          if(value!.isEmpty){
+                        validator: (value) {
+                          if (value!.isEmpty) {
                             return 'Enter email address';
                           }
                         },
@@ -56,23 +76,54 @@ class SignInScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        validator: (value){
-                          if(value!.isEmpty){
+                        validator: (value) {
+                          if (value!.isEmpty) {
                             return 'Enter password';
                           }
                         },
                       ),
                       const SizedBox(
-                        height: 15,
+                        height: 10,
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if(_formKey.currentState!.validate()){
-                            registrationProvider.signInWithEmail().then((value){
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          InkWell(
+                            onTap: () {},
+                            child: const Text(
+                              'Forgot Password',
+                              style: TextStyle(
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Don\'t have an account?'),
+                          TextButton(
+                            onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ProfileScreen(
+                                  builder: (context) => const RegistrationScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text('Sign up'),
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            registrationProvider.signInWithEmail().then((value) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
                                     userModel: UserModel(
                                       name: value!.user!.displayName,
                                       email: value!.user!.email,
@@ -127,11 +178,11 @@ class SignInScreen extends StatelessWidget {
                         children: [
                           SocialLoginButton(
                             icon: 'assets/icons/google.png',
-                            onPress: ()=>registrationProvider.signupWithGoogle(),
+                            onPress: () => registrationProvider.signupWithGoogle(),
                           ),
                           SocialLoginButton(
                             icon: 'assets/icons/github.png',
-                            onPress: ()=>registrationProvider.signinWithGithub(),
+                            onPress: () => registrationProvider.signinWithGithub(),
                           ),
                         ],
                       )
@@ -140,7 +191,10 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ));
+            registrationProvider.isLoading?const CircularProgressIndicator():const SizedBox(),
+          ],
+        ),
+      ),
+    ));
   }
 }

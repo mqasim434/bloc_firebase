@@ -1,6 +1,7 @@
-import 'dart:io';
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/screens/otp_screen.dart';
+import 'package:bloc_firebase/services/notification_services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,29 +12,60 @@ class RegistrationProvider extends ChangeNotifier {
   bool isLoading = false;
   User? currentUser;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  NotificationServices notificationServices = NotificationServices();
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  void clearControllers() {
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    notifyListeners();
+  }
 
   Future<UserCredential> signUpWithEmail() async {
     var credential = await firebaseAuth.createUserWithEmailAndPassword(
       email: emailController.text,
       password: passwordController.text,
     );
+    UserModel userData = UserModel(
+      email: emailController.text,
+    );
+    firebaseFirestore.collection('deviceTokens').add({
+      'email': emailController.text,
+      'token': await notificationServices.getDeviceToken()
+    });
+    firebaseFirestore.collection('users').add(userData.toJson());
     return credential;
   }
 
   Future<UserCredential> signInWithEmail() async {
+    isLoading = true;
+    notifyListeners();
     var credential = await firebaseAuth.signInWithEmailAndPassword(
       email: emailController.text,
       password: passwordController.text,
     );
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('deviceTokens')
+        .where('email', isEqualTo: emailController.text)
+        .get();
+    for (final docSnapshot in querySnapshot.docs) {
+      await docSnapshot.reference
+          .update({'deviceToken': await notificationServices.getDeviceToken()});
+    }
+    isLoading = false;
+    notifyListeners();
     return credential;
   }
 
   Future<User?> signupWithGoogle() async {
     isLoading = true;
+    notifyListeners();
     final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
 
     final GoogleSignInAuthentication gAuth = await gUser!.authentication;

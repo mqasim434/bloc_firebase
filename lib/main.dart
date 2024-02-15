@@ -1,9 +1,11 @@
 import 'package:bloc_firebase/blocs/location_bloc/location_bloc.dart';
+import 'package:bloc_firebase/providers/chat_provider.dart';
 import 'package:bloc_firebase/providers/location_provider.dart';
 import 'package:bloc_firebase/providers/otp_provider.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
 import 'package:bloc_firebase/providers/splash_provider.dart';
 import 'package:bloc_firebase/repository/signup_repository.dart';
+import 'package:bloc_firebase/screens/chat_screen.dart';
 import 'package:bloc_firebase/screens/live_location.dart';
 import 'package:bloc_firebase/screens/live_location_screen.dart';
 import 'package:bloc_firebase/screens/registration_screen.dart';
@@ -37,12 +39,15 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => SplashProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => ChatProvider(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
-        home: SignInScreen(),
+        home: const SplashScreen(),
       ),
     );
   }
