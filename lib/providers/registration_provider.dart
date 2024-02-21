@@ -10,7 +10,7 @@ import 'package:twitter_login/twitter_login.dart';
 
 class RegistrationProvider extends ChangeNotifier {
   bool isLoading = false;
-  User? currentUser;
+  UserModel? currentUser;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   NotificationServices notificationServices = NotificationServices();
@@ -56,14 +56,20 @@ class RegistrationProvider extends ChangeNotifier {
         .get();
     for (final docSnapshot in querySnapshot.docs) {
       await docSnapshot.reference
-          .update({'deviceToken': await notificationServices.getDeviceToken()});
+          .update({'token': await notificationServices.getDeviceToken()});
     }
     isLoading = false;
+    currentUser = UserModel(
+      name: credential.user!.displayName,
+      email: credential.user!.email,
+      phone: credential.user!.phoneNumber,
+      imageUrl: credential.user!.photoURL,
+    );
     notifyListeners();
     return credential;
   }
 
-  Future<User?> signupWithGoogle() async {
+  Future<UserModel?> signupWithGoogle() async {
     isLoading = true;
     notifyListeners();
     final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
@@ -76,7 +82,17 @@ class RegistrationProvider extends ChangeNotifier {
     );
     isLoading = false;
     var userCredentials = await firebaseAuth.signInWithCredential(credentials);
-    currentUser = userCredentials.user;
+    currentUser = UserModel(
+      name: userCredentials.user!.displayName,
+      email: userCredentials.user!.email,
+      phone: userCredentials.user!.phoneNumber,
+      imageUrl: userCredentials.user!.photoURL,
+    );
+    firebaseFirestore.collection('deviceTokens').add({
+      'email': emailController.text,
+      'token': await notificationServices.getDeviceToken()
+    });
+    firebaseFirestore.collection('users').add(currentUser!.toJson());
     notifyListeners();
     return currentUser;
   }
@@ -98,14 +114,25 @@ class RegistrationProvider extends ChangeNotifier {
     return await firebaseAuth.signInWithCredential(twitterAuthCredential);
   }
 
-  Future<User?> signinWithGithub() async {
+  Future<UserModel?> signinWithGithub() async {
     GithubAuthProvider githubAuthProvider = GithubAuthProvider();
 
     var userCredentials = firebaseAuth.signInWithProvider(githubAuthProvider);
 
     userCredentials.then((value) {
-      currentUser = value.user;
+      currentUser = UserModel(
+        name: value.user!.displayName,
+        email: value.user!.email,
+        phone: value.user!.phoneNumber,
+        imageUrl: value.user!.photoURL,
+      );
     });
+
+    firebaseFirestore.collection('deviceTokens').add({
+      'email': emailController.text,
+      'token': await notificationServices.getDeviceToken()
+    });
+    firebaseFirestore.collection('users').add(currentUser!.toJson());
 
     return currentUser;
   }

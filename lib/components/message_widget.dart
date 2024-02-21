@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 class MessageWidget extends StatelessWidget {
   final String message;
-  final String email;
+  final String senderId;
   final bool isSentByUser;
   final String messageId;
 
@@ -13,7 +13,7 @@ class MessageWidget extends StatelessWidget {
     required this.message,
     required this.isSentByUser,
     required this.messageId,
-    required this.email
+    required this.senderId
   }) : super(key: key);
 
   @override
@@ -41,8 +41,8 @@ class MessageWidget extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 10.0),
-              child: Text(email),
+              padding: isSentByUser?const EdgeInsets.only(right: 10.0):const EdgeInsets.only(left: 10.0),
+              child: Text(senderId),
             ),
           ],
         ),

@@ -8,36 +8,142 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key, required this.userModel}) : super(key: key);
+  const ChatScreen({required this.otherUser});
 
-  final UserModel userModel;
+  final UserModel otherUser;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
- NotificationServices notificationServices = NotificationServices();
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+
+
+  NotificationServices notificationServices = NotificationServices();
+  ChatProvider chatProvider = ChatProvider();
+  RegistrationProvider registrationProvider = RegistrationProvider();
+
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state){
+      case AppLifecycleState.paused:
+        print('Paused');
+        chatProvider.changeOnlineStatus(registrationProvider.currentUser!.email.toString(), false);
+        chatProvider.updateTypingStatus(registrationProvider.currentUser!.email.toString(), false);
+        break;
+      case AppLifecycleState.detached:
+        print('Killed');
+        chatProvider.changeOnlineStatus(registrationProvider.currentUser!.email.toString(), false);
+        chatProvider.updateTypingStatus(registrationProvider.currentUser!.email.toString(), false);
+        chatProvider.updateLastSeen(registrationProvider.currentUser!.email.toString(), '${DateTime.now().hour}/${DateTime.now().minute}');
+        break;
+      case AppLifecycleState.resumed:
+        chatProvider.changeOnlineStatus(registrationProvider.currentUser!.email.toString(), true);
+      default:
+        print('HELLO');
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  void initializeProvider(BuildContext context){
+    chatProvider = Provider.of<ChatProvider>(context);
+    registrationProvider = Provider.of<RegistrationProvider>(context);
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    final chatProvider = Provider.of<ChatProvider>(context);
-    final registrationProvider = Provider.of<RegistrationProvider>(context);
+    initializeProvider(context);
+    // final chatProvider = Provider.of<ChatProvider>(context);
+    // final registrationProvider = Provider.of<RegistrationProvider>(context);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(
-            widget.userModel.name.toString(),
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(onPressed: (){
-              registrationProvider.signOutGoogleUser();
+          titleSpacing: 0,
+          leading: BackButton(
+            onPressed: () {
+              chatProvider.updateTypingStatus(registrationProvider.currentUser!.email.toString(),false);
               Navigator.pop(context);
-            }, icon: const Icon(Icons.logout))
-          ],
+            },
+          ),
+          title: Row(
+            children: [
+              CircleAvatar(
+                child: IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.person),
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.otherUser.email.toString(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      StreamBuilder<String>(
+                          stream: chatProvider.getTypingStatus(
+                              widget.otherUser.email.toString()),
+                          builder: (context, snapshot) {
+                            return Align(
+                              alignment: Alignment.topCenter,
+                              child: snapshot.data.toString() == 'typing'
+                                  ? Text(
+                                      '${snapshot.data.toString()}...',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    )
+                                  : StreamBuilder(
+                                      stream: chatProvider.getOnlineStatus(
+                                          widget.otherUser.email.toString()),
+                                      builder: (context, snapshot) {
+                                        return snapshot.data.toString() ==
+                                                'online'
+                                            ? Text(
+                                                snapshot.data.toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors.blueAccent,
+                                                ),
+                                              )
+                                            : StreamBuilder(
+                                            stream: chatProvider.getLastSeen(
+                                                widget.otherUser.email.toString()),
+                                            builder: (context, snapshot) {
+                                              return Text(
+                                                snapshot.data.toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors.blueAccent,
+                                                ),
+                                              );
+                                            });
+                                      }),
+                            );
+                          }),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         body: Column(
           children: [
@@ -45,12 +151,24 @@ class _ChatScreenState extends State<ChatScreen> {
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('messages')
+                    .orderBy('timestamp', descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  var messages = snapshot.data!.docs;
+                  var messages = snapshot.data!.docs
+                      .where(
+                        (element) => ((element.data()['senderId'] ==
+                                    registrationProvider.currentUser!.email &&
+                                element.data()['receiverId'] ==
+                                    widget.otherUser.email) ||
+                            (element.data()['receiverId'] ==
+                                    registrationProvider.currentUser!.email &&
+                                element.data()['senderId'] ==
+                                    widget.otherUser.email)),
+                      )
+                      .toList();
                   return ListView.builder(
                     reverse: true, // Reverse the order of items
                     itemCount: messages!.length,
@@ -61,15 +179,16 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           MessageWidget(
                             messageId: message.id,
-                            email: message['senderId'],
+                            senderId: message['senderId'],
                             message: message['text'],
-                            isSentByUser: message['senderId'] == widget.userModel.email.toString(),
+                            isSentByUser: message['senderId'] ==
+                                registrationProvider.currentUser!.email
+                                    .toString(),
                           ),
                         ],
                       );
                     },
                   );
-                  ;
                 },
               ),
             ),
@@ -86,8 +205,16 @@ class _ChatScreenState extends State<ChatScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      onChanged: (text){
-
+                      onChanged: (text) {
+                        if (text.isNotEmpty||text!='' && registrationProvider.currentUser!=null) {
+                          chatProvider.updateTypingStatus(
+                              registrationProvider.currentUser!.email.toString(),
+                              true);
+                        } else {
+                          chatProvider.updateTypingStatus(
+                              registrationProvider.currentUser!.email.toString(),
+                              false);
+                        }
                       },
                     ),
                   ),
@@ -99,8 +226,18 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Center(
                       child: IconButton(
                         onPressed: () {
-                          chatProvider.sendMessage(widget.userModel.email.toString());
-                          chatProvider.clearController();
+                          if(chatProvider.messageController.text.isNotEmpty){
+                            chatProvider.updateLastMessage(chatProvider.messageController.text);
+                            if(registrationProvider.currentUser!=null){
+                              chatProvider.sendMessage(
+                                  registrationProvider.currentUser!.email
+                                      .toString(),
+                                  widget.otherUser.email.toString());
+                            }
+                            chatProvider.clearController();
+                            chatProvider.updateTypingStatus(registrationProvider.currentUser!.email
+                                .toString(), false);
+                          }
                         },
                         icon: const Icon(
                           Icons.send,

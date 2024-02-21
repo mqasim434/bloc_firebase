@@ -52,6 +52,9 @@ dependencies:
   flutter_local_notifications: ^16.3.2
   app_settings: ^5.1.1
   http: ^1.1.0
+  shared_preferences: ^2.2.2
+  image_picker: ^1.0.7
+  firebase_storage: ^11.6.0
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +81,7 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -1,7 +1,7 @@
 import 'package:bloc_firebase/components/social_login_button.dart';
-import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
-import 'package:bloc_firebase/screens/chat_screen.dart';
+import 'package:bloc_firebase/screens/dashboard.dart';
+import 'package:bloc_firebase/screens/inbox_screen.dart';
 import 'package:bloc_firebase/screens/signin_screen.dart';
 import 'package:bloc_firebase/services/notification_services.dart';
 import 'package:flutter/material.dart';
@@ -132,13 +132,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    userModel: UserModel(
-                                      name: value!.user!.displayName,
-                                      email: value!.user!.email,
-                                      imageUrl: value!.user!.photoURL,
-                                    ),
-                                  ),
+                                  builder: (context) => Dashboard(),
                                 ),
                               );
                             });

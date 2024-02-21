@@ -1,15 +1,15 @@
 import 'package:bloc_firebase/components/social_login_button.dart';
 import 'package:bloc_firebase/models/user_model.dart';
+import 'package:bloc_firebase/providers/chat_provider.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
-import 'package:bloc_firebase/screens/chat_screen.dart';
-import 'package:bloc_firebase/screens/profile_screen.dart';
 import 'package:bloc_firebase/screens/registration_screen.dart';
 import 'package:bloc_firebase/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SignInScreen extends StatefulWidget {
+import 'dashboard.dart';
 
+class SignInScreen extends StatefulWidget {
   SignInScreen({super.key});
 
   @override
@@ -18,7 +18,6 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   NotificationServices notificationServices = NotificationServices();
   @override
   void initState() {
@@ -31,6 +30,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final registrationProvider = Provider.of<RegistrationProvider>(context);
+    final chatProvider = Provider.of<ChatProvider>(context);
     return SafeArea(
         child: Scaffold(
       body: Padding(
@@ -46,7 +46,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     children: [
                       const Text(
                         'Sign In to\nYour Account',
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 28, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(
                         height: 15,
@@ -108,7 +109,8 @@ class _SignInScreenState extends State<SignInScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const RegistrationScreen(),
+                                  builder: (context) =>
+                                      const RegistrationScreen(),
                                 ),
                               );
                             },
@@ -119,17 +121,15 @@ class _SignInScreenState extends State<SignInScreen> {
                       ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            registrationProvider.signInWithEmail().then((value) {
+                            registrationProvider
+                                .signInWithEmail()
+                                .then((value) {
+                              chatProvider.changeOnlineStatus(
+                                  value.user!.email.toString(), true);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    userModel: UserModel(
-                                      name: value!.user!.displayName,
-                                      email: value!.user!.email,
-                                      imageUrl: value!.user!.photoURL,
-                                    ),
-                                  ),
+                                  builder: (context) => Dashboard(),
                                 ),
                               );
                             });
@@ -178,11 +178,13 @@ class _SignInScreenState extends State<SignInScreen> {
                         children: [
                           SocialLoginButton(
                             icon: 'assets/icons/google.png',
-                            onPress: () => registrationProvider.signupWithGoogle(),
+                            onPress: () =>
+                                registrationProvider.signupWithGoogle(),
                           ),
                           SocialLoginButton(
                             icon: 'assets/icons/github.png',
-                            onPress: () => registrationProvider.signinWithGithub(),
+                            onPress: () =>
+                                registrationProvider.signinWithGithub(),
                           ),
                         ],
                       )
@@ -191,7 +193,9 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
             ),
-            registrationProvider.isLoading?const CircularProgressIndicator():const SizedBox(),
+            registrationProvider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : const SizedBox(),
           ],
         ),
       ),

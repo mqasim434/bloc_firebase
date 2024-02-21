@@ -1,6 +1,5 @@
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/otp_provider.dart';
-import 'package:bloc_firebase/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/style.dart';
@@ -66,14 +65,7 @@ class OTPScreen extends StatelessWidget {
             ),
             ElevatedButton(onPressed: () {
               otpProvider.verifyOtp(verificationId).then((value){
-                Navigator.push(context, MaterialPageRoute(builder: (context){
-                  return ProfileScreen(userModel: UserModel(
-                  name: value!.user!.displayName,
-                    email: value!.user!.email,
-                    phone: value!.user!.phoneNumber,
-                    imageUrl: value!.user!.photoURL,
-                  ),);
-                }));
+
               });
             }, child: const Text('Verify')),
           ],
