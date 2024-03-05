@@ -1,8 +1,9 @@
 import 'package:bloc_firebase/models/user_model.dart';
-import 'package:bloc_firebase/providers/chat_provider.dart';
 import 'package:bloc_firebase/providers/inbox_provider.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
 import 'package:bloc_firebase/screens/chat_screen.dart';
+import 'package:bloc_firebase/screens/signin_screen.dart';
+import 'package:bloc_firebase/services/play_audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,20 +13,34 @@ class Inbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final registrationProvider = Provider.of<RegistrationProvider>(context);
-    final chatProvider = Provider.of<ChatProvider>(context);
     final inboxProvider = Provider.of<InboxProvider>(context);
-
+    final playAudioService = Provider.of<PlayAudioService>(context);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Inbox'),
+          leading: IconButton(
+              onPressed: playAudioService.isPlaying
+                  ? () {
+                      playAudioService.pauseTune();
+                    }
+                  : () {
+                      playAudioService.playTune();
+                    },
+              icon: playAudioService.isPlaying
+                  ? const Icon(Icons.pause_circle)
+                  : const Icon(Icons.play_circle)),
           automaticallyImplyLeading: false,
           centerTitle: true,
           actions: [
             IconButton(
               onPressed: () {
                 registrationProvider.signOutGoogleUser();
-                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => SignInScreen()),
+                        (route) => route.isFirst
+                );
               },
               icon: const Icon(Icons.logout),
             )
@@ -78,7 +93,7 @@ class Inbox extends StatelessWidget {
                                 ? const Text('typing...')
                                 : (user['lastMessage'] != null ||
                                         user['lastMessage'] != '')
-                                    ? Text(user['lastMessage'])
+                                    ? Text(user['lastMessage'] ?? '')
                                     : const Text(''),
                           ),
                         ),

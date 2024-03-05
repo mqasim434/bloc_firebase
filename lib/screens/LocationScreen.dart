@@ -11,7 +11,6 @@ class LiveLocationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locationProvider = Provider.of<LocationProvider>(context);
-
     return SafeArea(
       child: Scaffold(
         body: GoogleMap(

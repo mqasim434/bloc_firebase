@@ -1,22 +1,31 @@
 import 'dart:io';
 import 'dart:math';
-
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:bloc_firebase/services/awesome_notification_services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationServices {
   FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 
-  FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   void firebaseInit(BuildContext context) {
-    FirebaseMessaging.onMessage.listen((event) {
-      print(event.notification!.title);
+    FirebaseMessaging.onMessage.listen((notification) {
+      print(notification.notification!.title);
       if (Platform.isAndroid) {
-        initNotifications(context, event);
-        showNotification(event);
+        initNotifications(context, notification);
+        // showNotification(notification);
+        AwesomeNotificationServices.showNotification(
+            title: notification.notification!.title.toString(),
+            body: notification.notification!.body.toString(),
+            payload: {"navigate":"true"},
+            actionButtons: [
+              NotificationActionButton(
+                  requireInputText: true, key: 'input', label: 'Reply'),
+            ]);
       }
     });
   }
@@ -46,7 +55,7 @@ class NotificationServices {
 
   void initNotifications(BuildContext context, RemoteMessage message) async {
     var androidIntitializationSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        const AndroidInitializationSettings('@mipmap/ic_launcher');
 
     var initializationSettings =
         InitializationSettings(android: androidIntitializationSettings);

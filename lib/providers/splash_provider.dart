@@ -1,9 +1,6 @@
-import 'package:bloc_firebase/models/user_model.dart';
-import 'package:bloc_firebase/providers/registration_provider.dart';
 import 'package:bloc_firebase/screens/dashboard.dart';
 import 'package:bloc_firebase/screens/signin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SplashProvider extends ChangeNotifier{
@@ -21,12 +18,10 @@ class SplashProvider extends ChangeNotifier{
   void checkSession(BuildContext context){
     if(_isLoggedIn){
       Future.delayed(const Duration(seconds: 3), () {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Dashboard()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Dashboard()));
       });
     }else{Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => SignInScreen()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignInScreen()));
     });
     }
   }

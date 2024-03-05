@@ -7,6 +7,7 @@ import 'package:bloc_firebase/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
@@ -23,7 +24,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     notificationServices.refreshToken();
     notificationServices.firebaseInit(context);
     notificationServices.getDeviceToken().then((value) {
-      print(value.toString());
+      print('Value ${value.toString()}');
     });
     super.initState();
   }
@@ -129,7 +130,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             registrationProvider
                                 .signUpWithEmail()
                                 .then((value) {
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => Dashboard(),
