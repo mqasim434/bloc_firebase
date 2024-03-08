@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:bloc_firebase/providers/registration_provider.dart';
-import 'package:bloc_firebase/services/awesome_notification_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +11,8 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 class ChatProvider extends ChangeNotifier {
   TextEditingController messageController = TextEditingController();
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  final signedInUser = FirebaseAuth.instance.currentUser?.email;
+
   String? lastMessage;
   Timestamp? lastMessageTime ;
 
@@ -106,101 +107,38 @@ class ChatProvider extends ChangeNotifier {
     return messages;
   }
 
-  void updateTypingStatus(String email, bool typingStatus) async {
+
+  void updateUserFields(Map<String,dynamic> args) async {
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: email)
-              .get();
-
-      for (QueryDocumentSnapshot<Map<String, dynamic>> docSnapshot
-          in querySnapshot.docs) {
-        await docSnapshot.reference.update({'isTyping': typingStatus});
-        print('User typing status updated successfully for email: $email');
-      }
+      await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: FirebaseAuth.instance.currentUser!.email)
+          .get();
+      args.forEach((field, value){
+        for (QueryDocumentSnapshot<Map<String, dynamic>> docSnapshot
+        in querySnapshot.docs) {
+          ()async{
+            await docSnapshot.reference.update({field: value});
+          }.call();
+          print('User $field status updated successfully for email: $signedInUser');
+        }
+      });
     } catch (error) {
-      print('Error updating user typing status for email $email: $error');
+      print('Error updating status for email $signedInUser: $error');
     }
   }
 
-  Stream<String> getTypingStatus(String email) {
+  Stream<dynamic> getUserField(String email,String field) {
     return firebaseFirestore
         .collection('users')
-        .where('email', isEqualTo: email)
+        .where('email', isEqualTo: signedInUser)
         .snapshots()
         .map((snapshot) {
       if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data()['isTyping'] == true
-            ? 'typing'
-            : 'not typing';
+        return snapshot.docs.first.data()['field'];
       } else {
-        return 'User not found';
-      }
-    });
-  }
-
-  void changeOnlineStatus(String email, bool onlineStatus) async {
-    try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: email)
-              .get();
-
-      for (QueryDocumentSnapshot<Map<String, dynamic>> docSnapshot
-          in querySnapshot.docs) {
-        await docSnapshot.reference.update({'isOnline': onlineStatus});
-        print('User online status updated successfully for email: $email');
-      }
-    } catch (error) {
-      print('Error updating user online status for email $email: $error');
-    }
-  }
-
-  Stream<String> getOnlineStatus(String email) {
-    return firebaseFirestore
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .snapshots()
-        .map((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data()['isOnline'] == true
-            ? 'online'
-            : 'offline';
-      } else {
-        return 'User not found';
-      }
-    });
-  }
-
-  void updateLastSeen(String email, String lastSeen) async {
-    try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: email)
-              .get();
-      for (QueryDocumentSnapshot<Map<String, dynamic>> docSnapshot
-          in querySnapshot.docs) {
-        await docSnapshot.reference.update({'lastSeen': lastSeen});
-        print('User last seen updated successfully for email: $email');
-      }
-    } catch (error) {
-      print('Error updating user last seen for email $email: $error');
-    }
-  }
-
-  Stream<String> getLastSeen(String email) {
-    return firebaseFirestore
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .snapshots()
-        .map((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data()['lastSeen'];
-      } else {
-        return 'User not found';
+        return null;
       }
     });
   }
@@ -233,20 +171,6 @@ class ChatProvider extends ChangeNotifier {
     } catch (error) {
       print('Error updating user last seen for email $email: $error');
     }
-  }
-
-  Stream<String> getLastMessage(String email) {
-    return firebaseFirestore
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .snapshots()
-        .map((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data()['lastMessage'];
-      } else {
-        return 'User not found';
-      }
-    });
   }
 
   pickImage(String source, String senderEmail, String receiverEmail) async {

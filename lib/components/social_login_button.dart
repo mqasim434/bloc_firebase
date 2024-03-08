@@ -21,7 +21,7 @@ class SocialLoginButton extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const Inbox(),
+                  builder: (context) => Inbox(),
                 ),
               ),
             });

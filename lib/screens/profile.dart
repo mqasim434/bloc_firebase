@@ -1,6 +1,6 @@
 import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/profile_provider.dart';
-import 'package:bloc_firebase/providers/registration_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,23 +9,18 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final registrationProvider = Provider.of<RegistrationProvider>(context);
     final profileProvider = Provider.of<ProfileProvider>(context);
+    final signedInUser = FirebaseAuth.instance.currentUser;
     final nameController = TextEditingController();
     final emailController = TextEditingController();
     final phoneController = TextEditingController();
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Profile'),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-        ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
           child: StreamBuilder<UserModel>(
               stream: profileProvider.getUserProfile(
-                  registrationProvider.currentUser!.email.toString()),
+                  signedInUser!.email.toString()),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(),);
@@ -94,8 +89,7 @@ class ProfileScreen extends StatelessWidget {
                                                         profileProvider
                                                             .pickImage(
                                                             'camera',
-                                                            registrationProvider
-                                                                .currentUser!
+                                                            signedInUser!
                                                                 .email
                                                                 .toString());
                                                       },
@@ -120,8 +114,7 @@ class ProfileScreen extends StatelessWidget {
                                                         profileProvider
                                                             .pickImage(
                                                             'gallery',
-                                                            registrationProvider
-                                                                .currentUser!
+                                                            signedInUser
                                                                 .email
                                                                 .toString());
                                                       },

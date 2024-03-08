@@ -8,6 +8,6 @@ class CrashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(child: ElevatedButton(onPressed: (){
       FirebaseCrashlytics.instance.crash();
-    },child: Text('Crash App'),),);
+    },child: const Text('Crash App'),),);
   }
 }

@@ -212,8 +212,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                   registrationProvider
                                       .signInWithEmail()
                                       .then((value) {
-                                    chatProvider.changeOnlineStatus(
-                                        value.user!.email.toString(), true);
+                                    chatProvider.updateUserFields({'isOnline':true});
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(

@@ -15,7 +15,7 @@ class RegistrationProvider extends ChangeNotifier {
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   NotificationServices notificationServices = NotificationServices();
 
-  final TextEditingController emailController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();

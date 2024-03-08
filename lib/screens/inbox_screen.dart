@@ -1,51 +1,33 @@
 import 'package:bloc_firebase/models/user_model.dart';
+import 'package:bloc_firebase/providers/chat_provider.dart';
 import 'package:bloc_firebase/providers/inbox_provider.dart';
 import 'package:bloc_firebase/providers/registration_provider.dart';
 import 'package:bloc_firebase/screens/chat_screen.dart';
-import 'package:bloc_firebase/screens/signin_screen.dart';
 import 'package:bloc_firebase/services/play_audio_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class Inbox extends StatelessWidget {
-  const Inbox({Key? key});
+  Inbox({
+    super.key,
+  });
+
+  ChatProvider chatProvider = ChatProvider();
+  RegistrationProvider registrationProvider = RegistrationProvider();
+
+  User? signedInUser = FirebaseAuth.instance.currentUser;
+
+  void initializeProvider(BuildContext context) {
+    chatProvider = Provider.of<ChatProvider>(context);
+    registrationProvider = Provider.of<RegistrationProvider>(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final registrationProvider = Provider.of<RegistrationProvider>(context);
     final inboxProvider = Provider.of<InboxProvider>(context);
-    final playAudioService = Provider.of<PlayAudioService>(context);
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Inbox'),
-          leading: IconButton(
-              onPressed: playAudioService.isPlaying
-                  ? () {
-                      playAudioService.pauseTune();
-                    }
-                  : () {
-                      playAudioService.playTune();
-                    },
-              icon: playAudioService.isPlaying
-                  ? const Icon(Icons.pause_circle)
-                  : const Icon(Icons.play_circle)),
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-          actions: [
-            IconButton(
-              onPressed: () {
-                registrationProvider.signOutGoogleUser();
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignInScreen()),
-                        (route) => route.isFirst
-                );
-              },
-              icon: const Icon(Icons.logout),
-            )
-          ],
-        ),
         body: StreamBuilder<List<Map<String, dynamic>>>(
           stream: inboxProvider.getUsersFromFirestore(),
           builder: (context, snapshot) {
@@ -56,14 +38,13 @@ class Inbox extends StatelessWidget {
             } else {
               if (snapshot.hasData) {
                 List<Map<String, dynamic>> usersList = snapshot.data!
-                    .where((map) =>
-                        map['email'] != registrationProvider.currentUser?.email)
+                    .where((map) => map['email'] != signedInUser!.email)
                     .toList();
                 return ListView.builder(
                   itemCount: usersList.length,
                   itemBuilder: (context, index) {
                     var user = usersList[index];
-                    if (user != null) {
+                    if (user.isNotEmpty) {
                       return InkWell(
                         onTap: () {
                           Navigator.push(
@@ -89,7 +70,7 @@ class Inbox extends StatelessWidget {
                                     child: Icon(Icons.person),
                                   ),
                             title: Text(user['email']),
-                            subtitle: user['isTyping'] == true
+                            subtitle: ((user['isTyping'] == true) && (true))
                                 ? const Text('typing...')
                                 : (user['lastMessage'] != null ||
                                         user['lastMessage'] != '')

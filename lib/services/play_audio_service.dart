@@ -5,23 +5,9 @@ class PlayAudioService extends ChangeNotifier{
   bool isPlaying = false;
   final audioPlayer = AssetsAudioPlayer.newPlayer();
 
-  void playTune()async{
-    if(!isPlaying){
-      isPlaying = true;
-      notifyListeners();
-      audioPlayer.open(
-          Audio("assets/sounds/tune.mp3"),
-        showNotification: true,
-      );
-    }
-  }
-
-  void pauseTune(){
-    if(isPlaying){
-      audioPlayer.stop();
-      isPlaying = false;
-      notifyListeners();
-    }
+  void changeIsPlaying(bool value){
+    isPlaying= value;
+    notifyListeners();
   }
 
 }

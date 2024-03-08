@@ -1,4 +1,3 @@
-import 'package:bloc_firebase/models/user_model.dart';
 import 'package:bloc_firebase/providers/otp_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_text_field/otp_field.dart';

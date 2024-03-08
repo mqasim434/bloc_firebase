@@ -22,14 +22,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+  void initState() {
+    SplashProvider().checkSession(context);
+    // TODO: implement initState
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    SplashProvider().checkSession(context);
     initializeProvider(context);
     return const Scaffold(
       body: Center(

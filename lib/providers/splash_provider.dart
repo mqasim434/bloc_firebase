@@ -5,14 +5,12 @@ import 'package:flutter/material.dart';
 
 class SplashProvider extends ChangeNotifier{
   bool _isLoggedIn = false;
-
   FirebaseAuth auth = FirebaseAuth.instance;
-
   SplashProvider(){
-    if(auth.currentUser!=null){
+    if(auth.currentUser != null){
       _isLoggedIn = true;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void checkSession(BuildContext context){
